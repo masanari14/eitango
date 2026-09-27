@@ -160,7 +160,7 @@ textarea{width:100%;resize:vertical}
 /* start */
 .start h2{font-size:20px;margin:6px 0 4px}
 .start > p{color:var(--muted);margin:0 0 16px;font-size:14px}
-.pcards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pcards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 @media (max-width:560px){.pcards{grid-template-columns:1fr;gap:10px}.pcard{grid-template-columns:44px 1fr;column-gap:12px;row-gap:4px;padding:14px}.pcard .av{grid-row:span 4}.pcard small{font-size:12.5px}}
 .pcard small span,.pcard small{overflow-wrap:anywhere}
 .pcard{border:1px solid var(--line);background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:18px 14px;text-align:left;display:grid;gap:8px}
@@ -292,16 +292,17 @@ textarea{width:100%;resize:vertical}
       <div class="set"><label for="auto">例文が出たら自動で発音</label><span class="tg"><input type="checkbox" id="auto"></span></div>
       <div class="set"><label for="voice">発音の声（アメリカ英語）</label><span style="display:flex;gap:6px;align-items:center"><select id="voice"></select><button class="danger" id="voiceTest" style="border-color:var(--act);color:var(--act)">試す</button></span></div>
       <p class="note" id="voiceNote"></p>
-      <div class="set"><label for="name0">名前（1人目）</label><input type="text" id="name0" maxlength="8"></div>
-      <div class="set"><label for="name1">名前（2人目）</label><input type="text" id="name1" maxlength="8"></div>
-      <div class="set"><label for="name2">名前（3人目）</label><input type="text" id="name2" maxlength="8"></div>
+      <div class="set"><label for="name0">娘の表示名</label><input type="text" id="name0" maxlength="8"></div>
+      <div class="set"><label for="name1">兄の表示名</label><input type="text" id="name1" maxlength="8"></div>
+      <div class="set"><label for="name3">弟の表示名</label><input type="text" id="name3" maxlength="8"></div>
+      <div class="set"><label for="name2">パパの表示名</label><input type="text" id="name2" maxlength="8"></div>
       <div class="set"><span id="resetLabel">この人の記録をリセット</span><span id="resetBox"><button class="danger" id="resetBtn">リセット</button></span></div>
-      <p class="note"><span id="installNote"></span>出題範囲は人ごとに選べます（娘：医学部受験／息子：中1・中2・英検4級／パパ：英検準1級・TOEIC 800〜990・英検1級）。医学部受験は「共通テスト」「医療・生命」「医学部二次」の3レベルで、コアイメージには語源をのせています。頻出順は出現頻度の目安です。</p>
+      <p class="note"><span id="installNote"></span>出題範囲は人ごとに選べます（娘：医学部受験／兄・弟：中1・中2・英検4級／パパ：英検準1級・TOEIC 800〜990・英検1級）。医学部受験は「共通テスト」「医療・生命」「医学部二次」の3レベルで、コアイメージには語源をのせています。頻出順は出現頻度の目安です。</p>
     </div>
 
     <div class="settings" id="xfer">
       <h3>別の端末に記録を引き継ぐ</h3>
-      <p class="note" style="margin:0">iPhone・Android・Windowsパソコンの間で学習記録を移せます。元の端末で「引き継ぎコードを作る」→「コピー」して、LINEやメールで自分に送り、移したい端末でここに貼り付けて「読み込む」を押してください。3人分の記録がまとめて移ります。読み込むと、単語ごとに正解回数が多いほうの記録が残ります。</p>
+      <p class="note" style="margin:0">iPhone・Android・Windowsパソコンの間で学習記録を移せます。元の端末で「引き継ぎコードを作る」→「コピー」して、LINEやメールで自分に送り、移したい端末でここに貼り付けて「読み込む」を押してください。4人分の記録がまとめて移ります。読み込むと、単語ごとに正解回数が多いほうの記録が残ります。</p>
       <div class="ctrlrow" style="justify-content:flex-start"><button class="danger" id="mkCode" style="border-color:var(--act);color:var(--act)">引き継ぎコードを作る</button><button class="danger" id="cpCode" style="border-color:var(--act);color:var(--act)" hidden>コピー</button></div>
       <textarea id="codeOut" class="search en" rows="3" readonly hidden style="font-size:12px"></textarea>
       <label for="codeIn" class="note" style="margin:0">移したい端末で、コードをここに貼り付け：</label>
@@ -3992,13 +3993,16 @@ const MIN=60e3, DAY=864e5;
 const INT=[0,20*MIN,DAY,3*DAY,7*DAY];
 const INT_TXT=['','20分後','1日後','3日後','1週間後'];
 const KEY='papa-eitango-v1';
-const AV=['👧','👦','👨'];
+const AV=['👧','👦','👨','🧒'];
+const ORDER=[0,1,3,2];
+const DEFNAMES=['娘','兄','パパ','弟'];
 
 /* ---------- storage ---------- */
-function fresh(){return {sets:['med','junior','adult'],names:['娘','息子','パパ'],profiles:[{},{},{}],settings:{dailyNew:30,auto:true,d30:true},cur:null};}
+function fresh(){return {sets:['med','junior','adult','junior'],names:['娘','兄','パパ','弟'],profiles:[{},{},{},{}],settings:{dailyNew:30,auto:true,d30:true},cur:null};}
 function load(){try{const s=localStorage.getItem(KEY);if(s){const d=JSON.parse(s);const f=fresh();const o={...f,...d,settings:{...f.settings,...(d.settings||{})}};
   if(!o.settings.d30){o.settings.dailyNew=30;o.settings.d30=true;}
-  for(let i=0;i<3;i++){if(!o.names[i])o.names[i]=f.names[i];if(!o.sets[i])o.sets[i]=f.sets[i];if(!o.profiles[i])o.profiles[i]={};}return o;}}catch(e){}return fresh();}
+  if(o.names[1]==='息子')o.names[1]='兄';
+  for(let i=0;i<4;i++){if(!o.names[i])o.names[i]=f.names[i];if(!o.sets[i])o.sets[i]=f.sets[i];if(!o.profiles[i])o.profiles[i]={};}return o;}}catch(e){}return fresh();}
 let DB=load();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
 function prof(){const p=DB.profiles[DB.cur];p.w=p.w||{};return p;}
@@ -4104,7 +4108,7 @@ function show(view){
 }
 
 function renderStart(){
-  $('#pcards').innerHTML=[0,1,2].map(i=>{const p=DB.profiles[i];p.w=p.w||{};const now=Date.now();
+  $('#pcards').innerHTML=ORDER.map(i=>{const p=DB.profiles[i];p.w=p.w||{};const now=Date.now();
     const S=SETS[DB.sets[i]]||SETS.junior;const n=S.words.length;
     const eod=new Date();eod.setHours(23,59,59,999);const today=p.day===todayKey();
     let g=0,d=0;for(const w of S.words){const s=p.w[w.id];if(!s)continue;if(s.c>=GOAL)g++;else if(!s.off&&s.seen&&s.due<=eod.getTime())d++;}
@@ -4214,14 +4218,14 @@ $('#sortSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;sort=b
 $('#filtSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;filt=b.dataset.f;$('#filtSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));limit=120;renderList();};
 
 /* ---------- settings ---------- */
-function renderSettings(){fillVoiceSelect();$('#wset').value=DB.sets[DB.cur];$('#dailyNew').value=String(DB.settings.dailyNew);$('#auto').checked=!!DB.settings.auto;$('#name0').value=DB.names[0];$('#name1').value=DB.names[1];$('#name2').value=DB.names[2];
+function renderSettings(){fillVoiceSelect();$('#wset').value=DB.sets[DB.cur];$('#dailyNew').value=String(DB.settings.dailyNew);$('#auto').checked=!!DB.settings.auto;$('#name0').value=DB.names[0];$('#name1').value=DB.names[1];$('#name2').value=DB.names[2];$('#name3').value=DB.names[3];
   $('#resetLabel').textContent=`${DB.names[DB.cur]}の記録をリセット`;resetIdle();}
 $('#voice').onchange=e=>{DB.settings.voice=e.target.value;save();pickVoice();speak(['Hello! I like English.']);};
 $('#voiceTest').onclick=()=>{pickVoice();speak(['Hello! I like English.']);};
 $('#wset').onchange=e=>{DB.sets[DB.cur]=e.target.value;save();useSet(e.target.value);cur=null;lastId=null;renderList();};
 $('#dailyNew').onchange=e=>{DB.settings.dailyNew=+e.target.value;save();};
 $('#auto').onchange=e=>{DB.settings.auto=e.target.checked;save();};
-[0,1,2].forEach(i=>$('#name'+i).addEventListener('input',e=>{DB.names[i]=e.target.value.trim()||['娘','息子','パパ'][i];save();updateWho();$('#resetLabel').textContent=`${DB.names[DB.cur]}の記録をリセット`;}));
+[0,1,2,3].forEach(i=>$('#name'+i).addEventListener('input',e=>{DB.names[i]=e.target.value.trim()||DEFNAMES[i];save();updateWho();$('#resetLabel').textContent=`${DB.names[DB.cur]}の記録をリセット`;}));
 function resetIdle(){$('#resetBox').innerHTML='<button class="danger" id="resetBtn">リセット</button>';$('#resetBtn').onclick=()=>{
   $('#resetBox').innerHTML='<span style="display:flex;gap:6px"><button class="danger fill" id="rYes">消す</button><button class="danger" id="rNo">やめる</button></span>';
   $('#rYes').onclick=()=>{DB.profiles[DB.cur]={};save();cur=null;renderList();resetIdle();};$('#rNo').onclick=resetIdle;};}
